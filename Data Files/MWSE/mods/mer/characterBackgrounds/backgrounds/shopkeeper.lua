@@ -1,5 +1,5 @@
 return {
-    id = "shopKeeper",
+    id = "shopkeeper",
     name = "Apprenticed to a Shopkeeper",
     description = (
         "Spending your whole childhood inside a shop, you gain an exceptional " ..

@@ -1,4 +1,9 @@
 local this = {}
+this.none = {
+    id = "none",
+    name = "-None-",
+    description = "No Background Selected"
+}
 this.blacksmith = require('mer.characterBackgrounds.backgrounds.blacksmith')
 this.bully = require('mer.characterBackgrounds.backgrounds.bully')
 this.shopkeeper = require('mer.characterBackgrounds.backgrounds.shopkeeper')

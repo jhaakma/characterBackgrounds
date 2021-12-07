@@ -41,16 +41,16 @@ local bgUID = tes3ui.registerID("BackgroundNameUI")
 local function updateBGStat()
     local menu = tes3ui.findMenu(tes3ui.registerID("MenuStat"))
     if menu then
-        local background = menu:findChild(bgUID)
-
+        local backgroundLabel = menu:findChild(bgUID)
         if data and data.currentBackground then
-            background.text =  backgroundsList[data.currentBackground].name
+            backgroundLabel.text =  backgroundsList[data.currentBackground].name
         else
-            background.text = "None"
+            backgroundLabel.text = "None"
         end
         menu:updateLayout()
     end
 end
+event.register("menuEnter", updateBGStat)
 
 local function getDescription(background)
     if type(background.description) == "function" then
@@ -94,7 +94,7 @@ end
 
 
 local function createBGStat(e)
-    local name = backgroundsList[data.currentBackground].name
+
     local headingText = "Background"
 
     local GUI_Background_Stat = tes3ui.registerID("GUI_MenuStat_CharacterBackground_Stat")
@@ -108,9 +108,6 @@ local function createBGStat(e)
     bgBlock.widthProportional = 1.0
     bgBlock.autoHeight = true
 
-
-
-
     local headingLabel = bgBlock:createLabel{ text = headingText}
     headingLabel.color = tes3ui.getPalette("header_color")
 
@@ -121,6 +118,7 @@ local function createBGStat(e)
 
     local nameLabel = nameBlock:createLabel{ id = bgUID,  text = "None" }
     if data and data.currentBackground then
+        local name = backgroundsList[data.currentBackground].name
         nameLabel.text = name
     end
     nameLabel.wrapText = true
@@ -140,7 +138,6 @@ event.register("uiActivated", createBGStat, { filter = "MenuStat" })
 local okayButton
 
 local function clickedPerk(background)
-    mwse.log("Clicked background. name: %s, id: %s", background.name, background.id)
     data.currentBackground = background.id
     local header = tes3ui.findMenu(perksMenuID):findChild(descriptionHeaderID)
     header.text = background.name
@@ -150,7 +147,6 @@ local function clickedPerk(background)
     description:updateLayout()
 
     if not backgroundsList[data.currentBackground] then
-        mwse.log("[Character Backgrounds] Background not found in list: %s", data.currentBackground)
         return
     end
 
@@ -168,9 +164,9 @@ end
 
 local function startBackgroundWhenChargenFinished()
     if tes3.findGlobal("CharGenState").value == -1 then
+        updateBGStat()
         event.unregister("simulate", startBackgroundWhenChargenFinished)
         if data.currentBackground then
-
             --if backgroundsList[data.currentBackground].checkDisabled and backgroundsList[data.currentBackground].checkDisabled() then return end
             local background = backgroundsList[data.currentBackground]
             if background.doOnce then
@@ -191,7 +187,6 @@ local function clickedOkay()
     end
     tes3ui.findMenu(perksMenuID):destroy()
     tes3ui.leaveMenuMode()
-    updateBGStat()
     data.inBGMenu = false
     event.trigger("CharacterBackgrounds:OkayMenuClicked")
 end
@@ -199,6 +194,7 @@ end
 
 local function createPerkMenu()
     if not modReady() then return end
+    data.currentBackground = data.currentBackground or backgroundsList.none.id
     local perksMenu = tes3ui.createMenu{id = perksMenuID, fixedFrame = true}
     local outerBlock = perksMenu:createBlock()
     outerBlock.flowDirection = "top_to_bottom"
@@ -235,29 +231,8 @@ local function createPerkMenu()
     table.sort(sortedList, sort_func)
 
     --Default "No background" button
-
-    local noBGButton = perkListBlock:createTextSelect{ text = "-Select Background-" }
-    do
-        noBGButton.color = tes3ui.getPalette("disabled_color")
-        noBGButton.widget.idle = tes3ui.getPalette("disabled_color")
-        noBGButton.autoHeight = true
-        noBGButton.layoutWidthFraction = 1.0
-        noBGButton.paddingAllSides = 2
-        noBGButton.borderAllSides = 2
-
-        noBGButton:register("mouseClick", function()
-            data.currentBackground = nil
-            local header = tes3ui.findMenu(perksMenuID):findChild(descriptionHeaderID)
-            header.text = "No Background Selected"
-
-            local description = tes3ui.findMenu(perksMenuID):findChild(descriptionID)
-            description.text = "Select a Background from the list."
-            description:updateLayout()
-        end)
-    end
-
     --Rest of the buttons
-    local preselectedButton = noBGButton
+    local preselectedButton
     for _, background in pairs(sortedList) do
         local perkButton = perkListBlock:createTextSelect{ id = tes3ui.registerID("perkBlock"), text = background.name }
         perkButton.autoHeight = true
@@ -361,8 +336,6 @@ local function loaded()
     charGen = tes3.findGlobal("CharGenState")
     event.unregister("simulate", checkCharGen)
     event.register("simulate", checkCharGen)
-    updateBGStat()
-
 end
 
 event.register("loaded", loaded )
@@ -407,13 +380,11 @@ local function initialiseConfig()
                 local id = string.lower(ingredient.id)
                 if string.find(string.lower(id), pattern) then
                     config.greenPactAllowed[id] = true
-                    mwse.log("Added %s to green pact exclusions", id)
                     break
                 end
             end
         end
         mwse.saveConfig(configPath, config)
-        mwse.log("------------------------------------------saved Config")
     end
 end
 event.register("initialized", initialiseConfig)

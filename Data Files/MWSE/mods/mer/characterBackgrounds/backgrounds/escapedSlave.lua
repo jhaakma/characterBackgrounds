@@ -56,17 +56,13 @@ return {
             local data = getData()
             if data.currentBackground == "escapedSlave" then
                 local rand = math.random()
-                mwse.log("Rand: %s, chance: %s", rand, escapedSlaveInterruptChance)
                 if rand < escapedSlaveInterruptChance then
                     for _, slaver in ipairs(data.escapedSlave.slavers) do
-                        mwse.log("valid slaver: %s", slaver.hasFought)
-                        mwse.log("slaver level: %s, playerLvl: %s",  tes3.getObject(slaver.id).level, tes3.player.object.level)
                         local validSlaver = (
                             slaver.hasFought ~= true and
                             tes3.getObject(slaver.id).level <= tes3.player.object.level
                         )
                         if validSlaver then
-                            mwse.log("valid slaver")
                             currentSlaver = slaver
                             slaverDoAttack = true
                             e.count = 1
