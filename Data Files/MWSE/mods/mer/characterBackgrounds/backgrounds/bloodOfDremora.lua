@@ -1,5 +1,5 @@
 local dremoraBloodDoOnce
-local dremoraInterruptChance = 0.30
+local dremoraInterruptChance = 0.5
 local dremoraDoAttack
 
 local getData = function()
@@ -20,8 +20,6 @@ return {
         "Whenever he is defeated, you absorb his blood, causing all your magic skills to increase by 1."
     ),
     callback = function()
-
-
         --calculate whether to replace interrupt creature with dremora
         local function calcRestInterrupt(e)
             local data = getData()
@@ -40,7 +38,6 @@ return {
                 end
             end
         end
-
         --replace interrupt creature with dremora
         local function restInterrupt(e)
             local data = getData()
@@ -60,7 +57,6 @@ return {
                         sound = "dremora scream"
                     })
                     tes3.messageBox( introPhrases[ math.random(#introPhrases)] )
-
                 end
             end
         end

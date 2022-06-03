@@ -1,18 +1,21 @@
 local configPath = "character_backgrounds"
 
-local config = mwse.loadConfig(configPath)
-if (config == nil) then
-	config = {
-        enableBackgrounds = true,
-        exclusions = {},
-        greenPactAllowed = {},
-        ratKingInterval = 24,
-        ratKingChance = 3,
-        inheritanceAmount = 2000
-    }
-    mwse.saveConfig(configPath, config)
-end
 
+
+local config = mwse.loadConfig(configPath, {
+    enableBackgrounds = true,
+    exclusions = {},
+    greenPactAllowed = {},
+    ratKingInterval = 24,
+    ratKingChance = 3,
+    inheritanceAmount = 2000,
+    logLevel = "INFO"
+})
+
+local logger = require("logging.logger").new{
+    name = "Character Backgrounds",
+    logLevel = config.logLevel
+}
 
 local backgroundsList = require("mer.characterBackgrounds.backgroundsList")
 
@@ -180,17 +183,23 @@ local function startBackgroundWhenChargenFinished()
     end
 end
 
-local function clickedOkay()
+local function clickedOkay(perksMenu)
     if data.currentBackground then
         event.unregister("simulate", startBackgroundWhenChargenFinished)
         event.register("simulate", startBackgroundWhenChargenFinished)
     end
-    tes3ui.findMenu(perksMenuID):destroy()
+    logger:debug("Clicked Okay, closing menu")
+    perksMenu:destroy()
     tes3ui.leaveMenuMode()
     data.inBGMenu = false
     event.trigger("CharacterBackgrounds:OkayMenuClicked")
 end
 
+local function isTextDisabled(element)
+    return element.color[1] == tes3ui.getPalette("disabled_color")[1]
+        and element.color[2] == tes3ui.getPalette("disabled_color")[2]
+        and element.color[3] == tes3ui.getPalette("disabled_color")[3]
+end
 
 local function createPerkMenu()
     if not modReady() then return end
@@ -281,14 +290,24 @@ local function createPerkMenu()
     randomButton.alignX = 1.0
     randomButton:register("mouseClick", function()
         local list = perkListBlock:getContentElement().children
-        list[ math.random(#list) ]:triggerEvent("mouseClick")
+        local enabledList = {}
+        for _, element in ipairs(list) do
+            if not isTextDisabled(element) then
+                table.insert(enabledList, element)
+            else
+                logger:debug("%s is disabled", element.text)
+            end
+        end
+        enabledList[ math.random(#enabledList) ]:triggerEvent("mouseClick")
     end)
 
 
     --OKAY
     okayButton = buttonBlock:createButton{ id = tes3ui.registerID("perkOkayButton"), text = tes3.findGMST(tes3.gmst.sOK).value }
     okayButton.alignX = 1.0
-    okayButton:register("mouseClick", clickedOkay)
+    okayButton:register("mouseClick", function()
+        clickedOkay(perksMenu)
+    end)
 
     perksMenu:updateLayout()
 
@@ -298,21 +317,30 @@ local function createPerkMenu()
 
     data.inBGMenu = true
 end
-event.register("CharacterBackgrounds:OpenPerksMenu", createPerkMenu)
+event.register("CharacterBackgrounds:OpenPerksMenu", function()
+    logger:debug("Opening perks menu from event")
+    createPerkMenu()
+end)
 
 
 local charGen
 local newGame
 local function checkCharGen()
     if charGen.value == 10 then
+        logger:debug("New game, will open perks menu when chargen complete")
         newGame = true
     elseif newGame and charGen.value == -1 then
+        logger:debug("Character generation is done")
         event.unregister("simulate", checkCharGen)
         if not data.currentBackground then
+            logger:debug("Background selected, opening perks menu in 0.7 seconds")
             timer.start{
                 type = timer.simulate,
                 duration = 0.7,
-                callback = createPerkMenu
+                callback = function()
+                    logger:debug("Creating Perk Menu from timer")
+                    createPerkMenu()
+                end
             }
         end
     end
@@ -441,6 +469,22 @@ local function registerMCM()
             timer.delayOneFrame(function()
                 createPerkMenu()
             end)
+        end
+    }
+
+    page:createDropdown{
+        label = "Logging Level",
+        description = "Set the log level.",
+        options = {
+            { label = "TRACE", value = "TRACE"},
+            { label = "DEBUG", value = "DEBUG"},
+            { label = "INFO", value = "INFO"},
+            { label = "ERROR", value = "ERROR"},
+            { label = "NONE", value = "NONE"},
+        },
+        variable = mwse.mcm.createTableVariable{ id = "logLevel", table = config },
+        callback = function(self)
+            logger:setLogLevel(self.variable.value)
         end
     }
 
