@@ -55,7 +55,7 @@ local function setSwordStats()
     sword.slashMin = defaultSwordStats.sword.min + data.rivalsFought
     sword.thrustMin = defaultSwordStats.sword.min + data.rivalsFought
     sword.chopMin = defaultSwordStats.sword.min + data.rivalsFought
-    sword.name = data.famedWarrior.swordName
+    sword.name = data.swordName
     sword.modified = true
 end
 
