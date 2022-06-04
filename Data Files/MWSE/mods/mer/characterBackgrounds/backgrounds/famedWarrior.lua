@@ -1,4 +1,3 @@
-local TESTMODE = false
 local warriorDoOnce
 local warriorInterruptChance = 0.5
 
@@ -118,10 +117,6 @@ local function chooseSword()
 end
 
 local function showSwordMenuOnChargenFinished()
-    if isActive() then
-        event.unregister("simulate", showSwordMenuOnChargenFinished)
-        return
-    end
     if tes3.findGlobal("CharGenState").value == -1 then
         event.unregister("simulate", showSwordMenuOnChargenFinished)
         local menu = tes3ui.createMenu{ id = "ChooseWeaponMenu", fixedFrame = true }
@@ -155,6 +150,7 @@ return {
         "your travels. For each rival you defeat, your blade will grow in power. "
     ),
     doOnce = function(data)
+        mwse.log("do once famed warrior")
         data.famedWarrior = data.famedWarrior or {
             swordName = "Blood Drinker",
             rivals = rivalsDefaultData,
@@ -172,14 +168,11 @@ return {
             value = 10
         })
         event.unregister("simulate", showSwordMenuOnChargenFinished)
+        mwse.log("registering simulate event")
         event.register("simulate", showSwordMenuOnChargenFinished)
     end,
 
     callback = function()
-        if TESTMODE then
-            tes3.messageBox("Character Backgrounds TESTMODE is ON")
-        end
-
         setSwordStats()
         if warriorDoOnce then return end
         warriorDoOnce = true
