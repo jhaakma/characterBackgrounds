@@ -45,15 +45,17 @@ local function setSwordStats()
     local data = getFamedWarriorData()
     local enchantment = tes3.getObject(defaultSwordStats.enchantment.id)
     data.rivalsFought = data.rivalsFought or 0
-    enchantment.effects[1].min = defaultSwordStats.enchantment.min + data.rivalsFought
-    enchantment.effects[1].max = defaultSwordStats.enchantment.max + data.rivalsFought
+    local rivalDamageEffect = data.rivalsFought * 3
+    local rivalMagicEffect = data.rivalsFought * 1
+    enchantment.effects[1].min = defaultSwordStats.enchantment.min + rivalMagicEffect
+    enchantment.effects[1].max = defaultSwordStats.enchantment.max + rivalMagicEffect
     local sword = tes3.getObject(defaultSwordStats.sword.id)
-    sword.slashMax = defaultSwordStats.sword.slash + data.rivalsFought
-    sword.thrustMax = defaultSwordStats.sword.thrust + data.rivalsFought
-    sword.chopMax = defaultSwordStats.sword.chop + data.rivalsFought
-    sword.slashMin = defaultSwordStats.sword.min + data.rivalsFought
-    sword.thrustMin = defaultSwordStats.sword.min + data.rivalsFought
-    sword.chopMin = defaultSwordStats.sword.min + data.rivalsFought
+    sword.slashMax = defaultSwordStats.sword.slash + rivalDamageEffect
+    sword.thrustMax = defaultSwordStats.sword.thrust + rivalDamageEffect
+    sword.chopMax = defaultSwordStats.sword.chop + rivalDamageEffect
+    sword.slashMin = defaultSwordStats.sword.min + rivalDamageEffect
+    sword.thrustMin = defaultSwordStats.sword.min + rivalDamageEffect
+    sword.chopMin = defaultSwordStats.sword.min + rivalDamageEffect
     sword.name = data.swordName
     sword.modified = true
 end
