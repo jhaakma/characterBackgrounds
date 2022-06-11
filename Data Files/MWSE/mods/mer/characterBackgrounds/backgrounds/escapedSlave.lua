@@ -1,4 +1,3 @@
-local TESTMODE = false
 local escapedSlaveInterruptChance = 0.50
 local currentSlaver
 
@@ -24,15 +23,22 @@ local function isActive()
     return getData().currentBackground == "escapedSlave"
 end
 
+local function isValidSlaver(slaver)
+    if getData().testMode then
+        return slaver.hasFought ~= true
+    end
+    return slaver.hasFought ~= true
+        and tes3.getObject(slaver.id).level <= tes3.player.object.level
+end
+
+
 local function calcRestInterrupt(e)
     local data = getEscapedSlaveData()
     if isActive() then
         local rand = math.random()
         if rand < escapedSlaveInterruptChance then
             for _, slaver in ipairs(data.slavers) do
-                local validSlaver = slaver.hasFought ~= true
-                    and tes3.getObject(slaver.id).level <= tes3.player.object.level
-                if validSlaver then
+                if isValidSlaver(slaver) then
                     currentSlaver = slaver
                     e.count = 1
                     e.hour = math.random(1, 3)

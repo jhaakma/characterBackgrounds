@@ -45,32 +45,39 @@ local function setSwordStats()
     local data = getFamedWarriorData()
     local enchantment = tes3.getObject(defaultSwordStats.enchantment.id)
     data.rivalsFought = data.rivalsFought or 0
-    local rivalDamageEffect = data.rivalsFought * 3
+    local rivalDamageEffectMin = data.rivalsFought * 2
+    local rivalDamageEffectMax = data.rivalsFought * 3
     local rivalMagicEffect = data.rivalsFought * 1
     enchantment.effects[1].min = defaultSwordStats.enchantment.min + rivalMagicEffect
     enchantment.effects[1].max = defaultSwordStats.enchantment.max + rivalMagicEffect
     local sword = tes3.getObject(defaultSwordStats.sword.id)
-    sword.slashMax = defaultSwordStats.sword.slash + rivalDamageEffect
-    sword.thrustMax = defaultSwordStats.sword.thrust + rivalDamageEffect
-    sword.chopMax = defaultSwordStats.sword.chop + rivalDamageEffect
-    sword.slashMin = defaultSwordStats.sword.min + rivalDamageEffect
-    sword.thrustMin = defaultSwordStats.sword.min + rivalDamageEffect
-    sword.chopMin = defaultSwordStats.sword.min + rivalDamageEffect
+    sword.slashMin = defaultSwordStats.sword.min + rivalDamageEffectMin
+    sword.thrustMin = defaultSwordStats.sword.min + rivalDamageEffectMin
+    sword.chopMin = defaultSwordStats.sword.min + rivalDamageEffectMin
+    sword.slashMax = defaultSwordStats.sword.slash + rivalDamageEffectMax
+    sword.thrustMax = defaultSwordStats.sword.thrust + rivalDamageEffectMax
+    sword.chopMax = defaultSwordStats.sword.chop + rivalDamageEffectMax
     sword.name = data.swordName
     sword.modified = true
 end
 
+
+local function isValidRival(rival)
+    if getData().testMode then
+        return rival.hasFought ~= true
+    end
+    return rival.hasFought ~= true
+        and tes3.getObject(rival.id).level <= tes3.player.object.level
+end
+
 local currentRival
 local function calcRestInterrupt(e)
-
     if isActive() then
         local data = getFamedWarriorData()
         local rand = math.random()
-        if rand < warriorInterruptChance then
+        if getData().testMode or rand < warriorInterruptChance then
             for _, rival in ipairs(data.rivals) do
-                local validRival = not rival.hasFought
-                    and tes3.getObject(rival.id).level <= tes3.player.object.level
-                if validRival then
+                if isValidRival(rival) then
                     currentRival = rival
                     e.count = 1
                     e.hour = math.random(1, 3)
