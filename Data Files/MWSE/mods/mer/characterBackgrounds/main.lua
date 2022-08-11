@@ -229,15 +229,8 @@ local function createPerkMenu()
     perkListBlock.paddingAllSides = 4
     perkListBlock.borderRight = 6
 
-    local sort_func = function(a, b)
-        return string.lower(a.name) < string.lower(b.name)
-    end
-
-    local sortedList = {}
-    for _, background in pairs(backgroundsList) do
-        table.insert(sortedList, background)
-    end
-    table.sort(sortedList, sort_func)
+    --Move to an array so it can be sorted
+    local sortedList = table.values(backgroundsList, function(a, b) return a.name:lower() < b.name:lower() end)
 
     --Default "No background" button
     --Rest of the buttons

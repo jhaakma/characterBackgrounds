@@ -45,19 +45,19 @@ return {
             end
         end
 
+        local function isOffhand(item)
+            return item.objectType == tes3.objectType.armor
+                and item.slot == tes3.armorSlot.shield
+                    or
+                item.objectType == tes3.objectType.light
+        end
+
         local function onEquip(e)
             local data = getData()
             if e.reference == tes3.player and data.currentBackground == "fencer" then
                 timer.delayOneFrame(function()
                     if e.item.objectType == tes3.objectType.weapon then
                         data.fencer.swordEquipped = ( e.item.type == tes3.weaponType.longBladeOneHand )
-                    end
-
-                    local function isOffhand(item)
-                        return (
-                            item.slot == tes3.armorSlot.shield or
-                            item.objectType == tes3.objectType.light
-                        )
                     end
                     if isOffhand(e.item) then
                         data.fencer.offHandEquipped = true
@@ -73,13 +73,6 @@ return {
 
                 if e.item.objectType == tes3.objectType.weapon then
                     data.fencer.swordEquipped = false
-                end
-
-                local function isOffhand(item)
-                    return (
-                        item.slot == tes3.armorSlot.shield or
-                        item.objectType == tes3.objectType.light
-                    )
                 end
                 if isOffhand(e.item) then
                     data.fencer.offHandEquipped = false
