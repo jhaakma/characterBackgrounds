@@ -21,10 +21,17 @@ local logger = common.createLogger("Background")
 ---@field getDescription fun(self: CharacterBackgrounds.Background):string Returns the description of the background
 local Background = {
     ---@type { background: CharacterBackgrounds.Background, callback: CharacterBackgrounds.BackgroundConfig.createMcm }[]
-    mcms = {}
+    mcms = {},
+
+    ---@type table<string, CharacterBackgrounds.Background>
+    registeredBackgrounds = {}
 }
 Background.__index = Background
 
+
+function Background.getCurrentBackground()
+    return Background.registeredBackgrounds[config.persistent.currentBackground]
+end
 
 local function getMeta(id)
     return {

@@ -1,7 +1,6 @@
 local common = require("mer.characterBackgrounds.common")
 local config = common.config
 local logger = common.createLogger("MCM")
-local backgroundsList = require("mer.characterBackgrounds.backgroundsList")
 local UI = require("mer.characterBackgrounds.UI")
 local Background = require("mer.characterBackgrounds.Background")
 
@@ -89,8 +88,8 @@ local function registerMCM()
 
     --local ratKing = page:createCategory("Rat King")
     local ratKing = template:createSideBarPage{
-        label = backgroundsList.ratKing.name,
-        description = backgroundsList.ratKing:getDescription()
+        label = Background.registeredBackgrounds.ratKing.name,
+        description = Background.registeredBackgrounds.ratKing:getDescription()
     }
     ratKing:createSlider{
         label = "Time between rat hordes: %s hours",
@@ -113,8 +112,8 @@ local function registerMCM()
 
     --local inheritance = page:createCategory("Inheritance")
     local inheritance = template:createSideBarPage{
-        label =  backgroundsList.inheritance.name,
-        description = backgroundsList.inheritance:getDescription()
+        label =  Background.registeredBackgrounds.inheritance.name,
+        description = Background.registeredBackgrounds.inheritance:getDescription()
     }
     inheritance:createSlider{
         label = "Inheritance amount: %s gold",

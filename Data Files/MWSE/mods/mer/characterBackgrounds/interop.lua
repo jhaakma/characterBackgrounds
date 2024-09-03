@@ -1,8 +1,8 @@
-local backgroundList = require("mer.characterBackgrounds.backgroundsList")
-local config = require("mer.characterBackgrounds.config")
+
 local Background = require("mer.characterBackgrounds.Background")
 local common = require("mer.characterBackgrounds.common")
 local logger = common.createLogger("Interop")
+local UI = require("mer.characterBackgrounds.UI")
 
 ---@class CharacterBackgrounds.Interop
 local Interop = {}
@@ -10,11 +10,11 @@ local Interop = {}
 ---@param backgroundConfig CharacterBackgrounds.BackgroundConfig
 function Interop.addBackground(backgroundConfig)
     local background = Background:new(backgroundConfig)
-    if backgroundList[background.id] then
+    if Background.registeredBackgrounds[background.id] then
         logger:warn("Background %s already exists", background.name)
         return
     end
-    backgroundList[background.id] = background
+    Background.registeredBackgrounds[background.id] = background
     logger:info("Background %s added successfully", background.name)
     return background
 end
@@ -27,13 +27,7 @@ end
 
 ---@return CharacterBackgrounds.Background?
 function Interop.getCurrentBackground()
-    ---@type string
-    local backgroundId = tes3.player
-        and tes3.player.data.merBackgrounds
-        and tes3.player.data.merBackgrounds.currentBackground
-    if backgroundId then
-        return backgroundList[backgroundId]
-    end
+    return Background.getCurrentBackground()
 end
 
 --- Returns true if the background is currently active
@@ -47,7 +41,7 @@ end
 --- Returns the data table for the background
 ---@return table? #The data table for the background if available
 function Interop.getData(backgroundId)
-    local background = backgroundList[backgroundId]
+    local background = Background.get(backgroundId)
     if not background then
         return
     end
@@ -55,6 +49,11 @@ function Interop.getData(backgroundId)
         return
     end
     return background.data
+end
+
+---@param e CharacterBackgrounds.UI.createPerkMenu.params
+function Interop.openMenu(e)
+    UI.createPerkMenu(e)
 end
 
 return Interop

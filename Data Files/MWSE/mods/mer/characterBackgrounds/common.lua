@@ -22,7 +22,6 @@ end
 
 function common.modReady()
     return common.config.mcm.enableBackgrounds
-        and not tes3.menuMode()
         and tes3.player ~= nil
 end
 

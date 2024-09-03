@@ -1,13 +1,13 @@
 local common = require("mer.characterBackgrounds.common")
 local config = common.config
 local logger = common.createLogger("UI")
-local backgroundsList = require("mer.characterBackgrounds.backgroundsList")
-local interop = require("mer.characterBackgrounds.interop")
 
 local bgUID = "BackgroundNameUI"
 local perksMenuID = "perksMenu"
 local descriptionID = "perkDescriptionText"
 local descriptionHeaderID = "perkDescriptionHeaderText"
+
+local Background = require("mer.characterBackgrounds.Background")
 
 ---@class CharacterBackgrounds.UI
 local UI = {}
@@ -18,7 +18,7 @@ local function updateBGStat()
     if menu then
         local backgroundLabel = menu:findChild(bgUID)
         if config.persistent.currentBackground then
-            backgroundLabel.text =  backgroundsList[config.persistent.currentBackground].name
+            backgroundLabel.text =  Background.getCurrentBackground().name
         else
             backgroundLabel.text = "None"
         end
@@ -26,6 +26,8 @@ local function updateBGStat()
     end
 end
 event.register("menuEnter", updateBGStat)
+
+
 
 local function getDescription(background)
     if type(background.description) == "function" then
@@ -37,7 +39,7 @@ end
 
 local function createBGTooltip()
     if config.persistent.currentBackground then
-        local background = backgroundsList[config.persistent.currentBackground]
+        local background = Background.getCurrentBackground()
 
         local tooltip = tes3ui.createTooltipMenu()
         local outerBlock = tooltip:createBlock()
@@ -93,7 +95,7 @@ local function createBGStat(e)
 
     local nameLabel = nameBlock:createLabel{ id = bgUID,  text = "None" }
     if config.persistent.currentBackground then
-        local name = backgroundsList[config.persistent.currentBackground].name
+        local name = Background.getCurrentBackground().name
         nameLabel.text = name
     end
     nameLabel.wrapText = true
@@ -121,11 +123,12 @@ local function clickedPerk(background)
     description.text = getDescription(background)
     description:updateLayout()
 
-    if not backgroundsList[config.persistent.currentBackground] then
+    local currentBackground = Background.getCurrentBackground()
+    if not currentBackground then
         return
     end
 
-    if backgroundsList[config.persistent.currentBackground].checkDisabled and backgroundsList[config.persistent.currentBackground].checkDisabled() then
+    if currentBackground.checkDisabled and currentBackground.checkDisabled() then
         header.color = tes3ui.getPalette("disabled_color")
         okayButton.widget.state = 2
         okayButton.disabled = true
@@ -143,7 +146,7 @@ local function startBackgroundWhenChargenFinished()
         config.persistent.chargenFinished = true
         updateBGStat()
         event.unregister("simulate", startBackgroundWhenChargenFinished)
-        local background = interop.getCurrentBackground()
+        local background = Background.getCurrentBackground()
         if background then
             --init default data
             if background.defaultData then
@@ -180,8 +183,15 @@ local function isTextDisabled(element)
 end
 
 
-function UI.createPerkMenu()
-    if not common.modReady() then return end
+---@class CharacterBackgrounds.UI.createPerkMenu.params
+---@field okCallback function
+
+function UI.createPerkMenu(e)
+    if not tes3.player then
+        logger:error("No player, can't create perk menu")
+        return
+    end
+
     config.persistent.currentBackground = config.persistent.currentBackground or "none"
     local perksMenu = tes3ui.createMenu{id = perksMenuID, fixedFrame = true}
     local outerBlock = perksMenu:createBlock()
@@ -209,7 +219,7 @@ function UI.createPerkMenu()
     perkListBlock.borderRight = 6
 
     --Move to an array so it can be sorted
-    local sortedList = table.values(backgroundsList, function(a, b) return a.name:lower() < b.name:lower() end)
+    local sortedList = table.values(Background.registeredBackgrounds, function(a, b) return a.name:lower() < b.name:lower() end)
 
     --Default "No background" button
     --Rest of the buttons
@@ -273,11 +283,15 @@ function UI.createPerkMenu()
         enabledList[ math.random(#enabledList) ]:triggerEvent("mouseClick")
     end)
 
-
     --OKAY
     okayButton = buttonBlock:createButton{ id = "perkOkayButton", text = tes3.findGMST(tes3.gmst.sOK).value }
     okayButton:register("mouseClick", function()
         clickedOkay(perksMenu)
+        if e.okCallback then
+            e.okCallback({
+                background = Background.getCurrentBackground()
+            })
+        end
     end)
 
     perksMenu:updateLayout()
