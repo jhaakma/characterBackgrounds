@@ -94,11 +94,12 @@ return {
                 local currentHours = ( tes3.worldController.daysPassed.value * 24 ) + tes3.worldController.hour.value
 
                 data.ratKing.lastSummonHour = data.ratKing.lastSummonHour or 0
-                if currentHours >= ( data.ratKing.lastSummonHour + config.ratKingInterval ) then
-                    if math.random() < ( config.ratKingChance / 100 ) then
+                if currentHours >= ( data.ratKing.lastSummonHour + config.mcm.ratKingInterval ) then
+                    if math.random() < ( config.mcm.ratKingChance / 100 ) then
                         tes3.messageBox("A horde of rats comes to your aid!")
                         local ratCount = math.random(3, 5)
                         local command = string.format("PlaceAtPC rat %d 100 1", ratCount)
+                        ---@diagnostic disable-next-line
                         tes3.runLegacyScript{ command = command }
                         data.ratKing.lastSummonHour = currentHours
                     end

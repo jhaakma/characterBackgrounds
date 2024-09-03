@@ -4,6 +4,40 @@ local function getData()
     return data
 end
 
+local meatPatterns = {
+    "meat",
+    "cuttle",
+    "egg",
+    "skin",
+    "hide",
+    "jerky",
+    "bone",
+    "blood",
+    "fish",
+    "scales",
+    "scrib",
+    "shalk",
+    "leather",
+    "pelt",
+    "flesh",
+    "brain",
+    "_ear",
+    "eye",
+    "heart",
+    "tail",
+    "tongue",
+    "morsel",
+    "_ingcrea"
+}
+
+local function hasMeatyName(id)
+    for _, pattern in ipairs(meatPatterns) do
+        if string.find(id, pattern) then
+            return true
+        end
+    end
+end
+
 return {
     id = "greenPact",
     name = "Green Pact",
@@ -24,9 +58,11 @@ return {
 
             if e.item.objectType == tes3.objectType.ingredient then
                 local id = string.lower(e.item.id)
-                if not config.greenPactAllowed[id] then
-                    tes3.messageBox("The Green Pact prohibits you from eating this.")
-                    return false
+                if not hasMeatyName(id) then
+                    if not config.mcm.greenPactAllowed[id] then
+                        tes3.messageBox("The Green Pact prohibits you from eating this.")
+                        return false
+                    end
                 end
             end
         end

@@ -1,8 +1,10 @@
-return {
+local interop = require('mer.characterBackgrounds.interop')
+
+interop.addBackground{
     id = "blacksmith",
     name = "Apprenticed to a Blacksmith",
     description = (
-        "Your master is a hard man. You gain a bonus to Strength (+5) " ..
+        "Your master was a hard man. You gain a bonus to Strength (+5) " ..
         "and a bonus to your Armorer skill (+15), but you suffer a penalty " ..
         "to Agility (-10) due to the strenuous and repetitive hard labor."
     ),

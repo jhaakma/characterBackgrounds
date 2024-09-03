@@ -52,6 +52,7 @@ return {
                 item.objectType == tes3.objectType.light
         end
 
+        ---@param e { reference: tes3reference, item: any }
         local function onEquip(e)
             local data = getData()
             if e.reference == tes3.player and data.currentBackground == "fencer" then

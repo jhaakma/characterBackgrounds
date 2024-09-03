@@ -1,4 +1,5 @@
-return {
+local interop = require("mer.characterBackgrounds.interop")
+interop.addBackground{
     id = "bully",
     name = "Bully",
     description = (

@@ -1,6 +1,5 @@
 local escapedSlaveInterruptChance = 0.50
 local currentSlaver
-
 local defaultSlaverList = {
     { id = "mer_bg_headhunter_01", list = "mer_bg_headhunterList_01", hasFought = false},
     { id = "mer_bg_headhunter_02", list = "mer_bg_headhunterList_02", hasFought = false},
@@ -10,56 +9,9 @@ local defaultSlaverList = {
     { id = "mer_bg_slavemaster", list = "mer_bg_slavemasterList", hasFought = false},
 }
 
-local function getData()
-    local data = tes3.player.data.merBackgrounds or {}
-    return data
-end
 
-local function getEscapedSlaveData()
-    return getData().escapedSlave or {}
-end
-
-local function isActive()
-    return getData().currentBackground == "escapedSlave"
-end
-
-local function isValidSlaver(slaver)
-    if getData().testMode then
-        return slaver.hasFought ~= true
-    end
-    return slaver.hasFought ~= true
-        and tes3.getObject(slaver.id).level <= tes3.player.object.level
-end
-
-
-local function calcRestInterrupt(e)
-    local data = getEscapedSlaveData()
-    if isActive() then
-        local rand = math.random()
-        if rand < escapedSlaveInterruptChance then
-            for _, slaver in ipairs(data.slavers) do
-                if isValidSlaver(slaver) then
-                    currentSlaver = slaver
-                    e.count = 1
-                    e.hour = math.random(1, 3)
-                    break
-                end
-            end
-
-        end
-    end
-end
-
-local function restInterrupt(e)
-    if isActive() then
-        if currentSlaver and not currentSlaver.hasFought then
-            currentSlaver.hasFought = true
-            e.creature = tes3.getObject(currentSlaver.list)
-        end
-    end
-end
-
-return {
+local interop = require("mer.characterBackgrounds.interop")
+local background = interop.addBackground{
     id = "escapedSlave",
     name = "Escaped Slave",
     description = (
@@ -74,8 +26,8 @@ return {
         local isSlaveRace = ( race == "Argonian" or race == "Khajiit" )
         return not isSlaveRace
     end,
-    doOnce = function(data)
-        data.escapedSlave = data.escapedSlave or {
+    doOnce = function(self)
+        self.data.escapedSlave = self.data.escapedSlave or {
             slaversKilled = 0,
             slavers = defaultSlaverList
         }
@@ -92,10 +44,39 @@ return {
             tes3.mobilePlayer:equip{ item = "slave_bracer_right", playSound = false }
         end)
     end,
-    callback = function()
-        event.unregister("calcRestInterrupt", calcRestInterrupt)
-        event.register("calcRestInterrupt", calcRestInterrupt)
-        event.unregister("restInterrupt", restInterrupt)
-        event.register("restInterrupt", restInterrupt)
-    end
 }
+if not background then return end
+
+
+
+local function isValidSlaver(slaver)
+    if background.data.testMode then
+        return slaver.hasFought ~= true
+    end
+    return slaver.hasFought ~= true
+        and tes3.getObject(slaver.id).level <= tes3.player.object.level
+end
+
+
+event.register("calcRestInterrupt", function(e)
+    if not background:isActive() then return end
+    local rand = math.random()
+    if rand < escapedSlaveInterruptChance then
+        for _, slaver in ipairs(background.data.slavers) do
+            if isValidSlaver(slaver) then
+                currentSlaver = slaver
+                e.count = 1
+                e.hour = math.random(1, 3)
+                break
+            end
+        end
+    end
+end)
+
+event.register("restInterrupt", function(e)
+    if not background:isActive() then return end
+    if currentSlaver and not currentSlaver.hasFought then
+        currentSlaver.hasFought = true
+        e.creature = tes3.getObject(currentSlaver.list)
+    end
+end)

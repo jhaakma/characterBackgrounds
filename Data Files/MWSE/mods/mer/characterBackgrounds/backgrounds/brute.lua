@@ -1,4 +1,5 @@
-return {
+local interop = require("mer.characterBackgrounds.interop")
+interop.addBackground{
     id = "brute",
     name = "Brute",
     description = (
@@ -17,5 +18,5 @@ return {
             attribute = tes3.attribute.agility,
             value = -10
         })
-    end
+    end,
 }
